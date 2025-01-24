@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green API Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Green API Test</h1>
+    <div class="container">
+        <div class="panel">
+            <h3>Connection Parameters</h3>
+            <input type="text" id="apiUrl" placeholder="API URL">
+            <input type="text" id="idInstance" placeholder="ID Instance">
+            <input type="password" id="apiTokenInstance" placeholder="API Token Instance">
+            
+            <h3>Actions</h3>
+            <button onclick="getSettings()">Get Settings</button>
+            <button onclick="getStateInstance()">Get State Instance</button>
+
+            <input type="text" id="chatIdMessage" placeholder="Chat ID (e.g., 111111111@c.us)">
+            <input type="text" id="message" placeholder="Message">
+            <button onclick="sendMessage()">Send Message</button>
+
+            <input type="text" id="chatIdFile" placeholder="Chat ID (e.g., 111111111@c.us)">
+            <input type="text" id="urlFile" placeholder="File URL">
+            <input type="text" id="fileName" placeholder="File Name">
+            <button onclick="sendFileByUrl()">Send File By URL</button>
+        </div>
+
+        <div class="panel">
+            <h3>Response</h3>
+            <div class="response" id="responseField" contenteditable="false">
+                Response will be displayed here.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getApiUrl(endpoint) {
+            const apiUrl = document.getElementById("apiUrl").value;
+            const idInstance = document.getElementById("idInstance").value;
+            const apiTokenInstance = document.getElementById("apiTokenInstance").value;
+
+            if (!apiUrl || !idInstance || !apiTokenInstance) {
+                alert("Please enter API URL, ID Instance, and API Token Instance.");
+                throw new Error("Missing connection parameters");
+            }
+
+            return `${apiUrl}/waInstance${idInstance}/${endpoint}/${apiTokenInstance}`;
+        }
+
+        function updateResponse(data) {
+            document.getElementById("responseField").innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function getSettings() {
+            try {
+                const url = getApiUrl("getSettings");
+                const response = await fetch(url);
+                const data = await response.json();
+                updateResponse(data);
+            } catch (error) {
+                updateResponse({ error: error.message });
+            }
+        }
+
+        async function getStateInstance() {
+            try {
+                const url = getApiUrl("getStateInstance");
+                const response = await fetch(url);
+                const data = await response.json();
+                updateResponse(data);
+            } catch (error) {
+                updateResponse({ error: error.message });
+            }
+        }
+
+        async function sendMessage() {
+            try {
+                const url = getApiUrl("sendMessage");
+                let chatId = document.getElementById("chatIdMessage").value;
+                let message = document.getElementById("message").value;
+
+                if (!chatId || !message) {
+                    alert("Please enter both Chat ID and Message.");
+                    return;
+                }
+
+                const payload = { chatId, message };
+
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                updateResponse(data);
+            } catch (error) {
+                updateResponse({ error: error.message });
+            }
+        }
+
+        async function sendFileByUrl() {
+            try {
+                const url = getApiUrl("sendFileByUrl");
+                let chatId = document.getElementById("chatIdFile").value;
+                let urlFile = document.getElementById("urlFile").value;
+                let fileName = document.getElementById("fileName").value || "";
+
+                if (!chatId || !urlFile) {
+                    alert("Please enter both Chat ID and File URL.");
+                    return;
+                }
+
+                const payload = { chatId, urlFile, fileName };
+
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                updateResponse(data);
+            } catch (error) {
+                updateResponse({ error: error.message });
+            }
+        }
+    </script>
+</body>
+</html>
